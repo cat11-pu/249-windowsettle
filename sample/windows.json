@@ -1,0 +1,19 @@
+{
+  "settle_error_code": "E_BAD_SETTLE",
+  "late_error_code": "E_TOO_LATE",
+  "event_error_code": "E_BAD_EVENT",
+  "window": 3,
+  "budget": 1,
+  "state": { "counts": {}, "settled": [], "applied": [] },
+  "events": [
+    { "id": 1, "kind": "mark", "at": 0 },
+    { "id": 2, "kind": "mark", "at": 1 },
+    { "id": 3, "kind": "mark", "at": 2 },
+    { "id": 4, "kind": "settle", "slot": 0 },
+    { "id": 5, "kind": "mark", "at": 5 },
+    { "id": 6, "kind": "mark", "at": 6 },
+    { "id": 7, "kind": "mark", "at": 7 },
+    { "id": 8, "kind": "settle", "slot": 1 },
+    { "id": 9, "kind": "settle", "slot": 2 }
+  ]
+}
