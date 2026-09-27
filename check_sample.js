@@ -46,26 +46,47 @@ emit("与全量对照差异 =", fingerprint(closed.state) === fingerprint(fullCl
 
 
 // ---- 异常路径探针：真调用实现，看它报出什么码（不是从样例里抄）----
+let badSettleCode = "没有报错";
+let tooLateCode = "没有报错";
+let badEventCode = "没有报错";
 try {
   step(Object.assign({}, { state: { counts: { 0: 1 }, settled: [], applied: [] },
     events: [{ id: 1, kind: "settle", slot: 9 }], budget: 1, window: 3 }));
-  emit("结算不存在窗口写错的错误码", "没有报错");
 } catch (error) {
-  emit("结算不存在窗口写错的错误码", error && error.code ? error.code : String(error.message));
+  badSettleCode = error && error.code ? error.code : String(error.message);
 }
+emit("结算不存在窗口写错的错误码", badSettleCode);
 try {
   step(Object.assign({}, { state: { counts: { 0: 1 }, settled: [0], applied: [] },
     events: [{ id: 1, kind: "mark", at: 1 }], budget: 1, window: 3 }));
-  emit("太迟写错的错误码", "没有报错");
 } catch (error) {
-  emit("太迟写错的错误码", error && error.code ? error.code : String(error.message));
+  tooLateCode = error && error.code ? error.code : String(error.message);
 }
+emit("太迟写错的错误码", tooLateCode);
 try {
   step(Object.assign({}, { state: { counts: {}, settled: [], applied: [] },
     events: [{ id: 1, kind: "peek", at: 0 }], budget: 1, window: 3 }));
-  emit("事件写错的错误码", "没有报错");
 } catch (error) {
-  emit("事件写错的错误码", error && error.code ? error.code : String(error.message));
+  badEventCode = error && error.code ? error.code : String(error.message);
+}
+emit("事件写错的错误码", badEventCode);
+
+
+// ---- 七条机检断言：脚本自己断言，每条真调实现；不符即失败退出 ----
+const facts = [
+  ["两档预算结算不同", first.settled_count !== wide.settled_count],
+  ["收尾前有账收尾后归零", first.pending_before > 0 && closed.state.pending.length === 0],
+  ["拆两轮中间态不同", fingerprint(r2.state) !== fingerprint(first.state)],
+  ["拆两轮收尾态一致", fingerprint(closedTwo.state) === fingerprint(closed.state)],
+  ["重放不再结算", replay.settled_count === 0],
+  ["工作计数不超事件条数", first.judged <= events.length],
+  ["与全量对照差异为零", fingerprint(closed.state) === fingerprint(fullClosed.state)],
+  ["状态型异常探针真调", badSettleCode === "E_BAD_SETTLE"
+    && tooLateCode === "E_TOO_LATE" && badEventCode === "E_BAD_EVENT"]
+];
+for (const [name, ok] of facts) {
+  if (ok) { console.log("机检断言通过 " + name); }
+  else { __bad += 1; console.log("机检断言失败 " + name); }
 }
 
 
