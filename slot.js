@@ -1,8 +1,9 @@
-// slot.js：窗口落点与是否已结算（基线：一律给零与假）
+// slot.js：窗口落点与是否已结算
 export function slotOf(at, size) {
-  return 0;
+  return Math.floor(at / size);
 }
 
 export function isSettled(state, slot) {
-  return false;
+  const settled = (state && state.settled) || [];
+  return settled.indexOf(slot) !== -1;
 }
